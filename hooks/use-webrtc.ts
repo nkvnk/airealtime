@@ -34,7 +34,7 @@ interface UseWebRTCAudioSessionReturn {
  */
 export default function useWebRTCAudioSession(
   voice: string,
-  tools?: Tool[],
+  tools?: Tool[]
 ): UseWebRTCAudioSessionReturn {
   const { t, locale } = useTranslations();
   // Connection/session states
@@ -82,6 +82,9 @@ export default function useWebRTCAudioSession(
    * Configure the data channel on open, sending a session update to the server.
    */
   function configureDataChannel(dataChannel: RTCDataChannel) {
+    // ロールプレイ用のシステムインストラクション（必ず「お客様役」で振る舞う）
+    const systemInstructions = t("languagePrompt");
+
     // Send session update
     const sessionUpdate = {
       type: "session.update",
@@ -91,6 +94,7 @@ export default function useWebRTCAudioSession(
         input_audio_transcription: {
           model: "whisper-1",
         },
+        instructions: systemInstructions,
       },
     };
     dataChannel.send(JSON.stringify(sessionUpdate));
@@ -153,7 +157,7 @@ export default function useWebRTCAudioSession(
           return { ...msg, ...partial };
         }
         return msg;
-      }),
+      })
     );
   }
 
@@ -514,13 +518,16 @@ export default function useWebRTCAudioSession(
    * Send a text message through the data channel
    */
   function sendTextMessage(text: string) {
-    if (!dataChannelRef.current || dataChannelRef.current.readyState !== "open") {
+    if (
+      !dataChannelRef.current ||
+      dataChannelRef.current.readyState !== "open"
+    ) {
       console.error("Data channel not ready");
       return;
     }
 
     const messageId = uuidv4();
-    
+
     // Add message to conversation immediately
     const newMessage: Conversation = {
       id: messageId,
@@ -530,8 +537,8 @@ export default function useWebRTCAudioSession(
       isFinal: true,
       status: "final",
     };
-    
-    setConversation(prev => [...prev, newMessage]);
+
+    setConversation((prev) => [...prev, newMessage]);
 
     // Send message through data channel
     const message = {
@@ -551,9 +558,10 @@ export default function useWebRTCAudioSession(
     const response = {
       type: "response.create",
     };
-    
+
     dataChannelRef.current.send(JSON.stringify(message));
-    dataChannelRef.current.send(JSON.stringify(response));}
+    dataChannelRef.current.send(JSON.stringify(response));
+  }
 
   // Cleanup on unmount
   useEffect(() => {

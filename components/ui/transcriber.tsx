@@ -138,48 +138,69 @@ function ConversationItem({ message }: { message: Conversation }) {
 }
 
 interface TranscriberProps {
- conversation: Conversation[];
+  conversation: Conversation[];
+  compact?: boolean;
 }
 
 
-export default function Transcriber({ conversation }: TranscriberProps) {
- const scrollRef = React.useRef<HTMLDivElement>(null);
- const { t } = useTranslations();
+export default function Transcriber({ conversation, compact = false }: TranscriberProps) {
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const { t } = useTranslations();
 
- // Scroll to bottom whenever conversation updates
- React.useEffect(() => {
-   if (scrollRef.current) {
-     scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-   }
- }, [conversation]);
+  // Scroll to bottom whenever conversation updates
+  React.useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [conversation]);
 
- // Filter out messages that we do not want to display
- const displayableMessages = React.useMemo(() => {
-   return conversation.filter(shouldDisplayMessage);
- }, [conversation]);
+  // Filter out messages that we do not want to display
+  const displayableMessages = React.useMemo(() => {
+    const msgs = conversation.filter(shouldDisplayMessage);
+    return compact ? msgs.slice(-3) : msgs;
+  }, [conversation, compact]);
 
- return (
-   <div className="flex flex-col w-full h-full mx-auto bg-background rounded-lg shadow-lg overflow-hidden dark:bg-background">
-     {/* Header */}
-     <div className="bg-secondary px-4 py-3 flex items-center justify-between dark:bg-secondary">
-       <div className="font-medium text-foreground dark:text-foreground">
-        {t('transcriber.title')}
-       </div>
-     </div>
+  if (compact) {
+    // コンパクト表示：カード風に直近数件だけ表示（ヘッダーなし）
+    return (
+      <div className="flex flex-col w-full mx-auto bg-card rounded-lg border shadow-sm overflow-hidden">
+        <div
+          ref={scrollRef}
+          className="max-h-40 overflow-y-auto p-3 space-y-3 scrollbar-thin scrollbar-thumb-primary"
+        >
+          <AnimatePresence>
+            {displayableMessages.map((message) => (
+              <ConversationItem key={message.id} message={message} />
+            ))}
+          </AnimatePresence>
+        </div>
+      </div>
+    );
+  }
 
-     {/* Body */}
-     <div
-       ref={scrollRef}
-       className="flex-1 h-full overflow-y-auto p-4 space-y-4 z-50 scrollbar-thin scrollbar-thumb-primary"
-     >
-       <AnimatePresence>
-         {displayableMessages.map((message) => (
-           <ConversationItem key={message.id} message={message} />
-         ))}
-       </AnimatePresence>
-     </div>
-   </div>
- );
+  // フル表示：ヘッダー付きで会話全体を表示
+  return (
+    <div className="flex flex-col w-full h-full mx-auto bg-background rounded-lg shadow-lg overflow-hidden dark:bg-background">
+      {/* Header */}
+      <div className="bg-secondary px-4 py-3 flex items-center justify-between dark:bg-secondary">
+        <div className="font-medium text-foreground dark:text-foreground">
+         {t('transcriber.title')}
+        </div>
+      </div>
+
+      {/* Body */}
+      <div
+        ref={scrollRef}
+        className="flex-1 h-full overflow-y-auto p-4 space-y-4 z-50 scrollbar-thin scrollbar-thumb-primary"
+      >
+        <AnimatePresence>
+          {displayableMessages.map((message) => (
+            <ConversationItem key={message.id} message={message} />
+          ))}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
 }
 
 export { Avatar, AvatarImage, AvatarFallback };
