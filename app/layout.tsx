@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/header";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
 import { siteConfig } from "@/config/site";
@@ -76,7 +75,6 @@ export default function RootLayout({
         >
           <TranslationsProvider>
             <div className="relative flex min-h-dvh flex-col bg-background items-center">
-              {/* <Header /> */}
               <main className="flex flex-1 justify-center items-start">
                 {children}
               </main>
