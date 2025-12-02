@@ -11,6 +11,7 @@ import { MessageControls } from "@/components/message-controls";
 import { ToolsEducation } from "@/components/tools-education";
 import { motion } from "framer-motion";
 import { useToolsFunctions } from "@/hooks/use-tools";
+import { DottedSphere } from "@/components/dotted-sphere";
 
 const App: React.FC = () => {
   // WebRTC Audio Session Hook
@@ -60,12 +61,14 @@ const App: React.FC = () => {
           transition={{ delay: 0.2, duration: 0.4 }}
         >
           <div className="flex flex-col items-center gap-4">
-            {/* ユーザーが話しているときに反応するAIオーブ */}
+            {/* ユーザーが話しているときに反応するAIの球体アバター */}
             <div
               ref={audioIndicatorRef}
-              className="audio-indicator"
+              className="audio-indicator flex items-center justify-center"
               aria-hidden="true"
-            />
+            >
+              <DottedSphere color="#22c55e" density={1400} speed={0.55} />
+            </div>
             <BroadcastButton
               isSessionActive={isSessionActive}
               onClick={handleStartStopClick}
