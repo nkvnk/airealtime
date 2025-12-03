@@ -111,7 +111,7 @@ export default function useWebRTCAudioSession(
         content: [
           {
             type: "input_text",
-            text: t("languagePrompt"),
+            text: t("languageUserIntro"),
           },
         ],
       },
