@@ -11,6 +11,11 @@ export interface Tool {
   parameters?: Record<string, any>;
 }
 
+type ScenarioSelection = {
+  pattern?: string;
+  situation?: string;
+};
+
 /**
  * The return type for the hook, matching Approach A
  * (RefObject<HTMLDivElement | null> for the audioIndicatorRef).
@@ -34,7 +39,8 @@ interface UseWebRTCAudioSessionReturn {
  */
 export default function useWebRTCAudioSession(
   voice: string,
-  tools?: Tool[]
+  tools?: Tool[],
+  scenario?: ScenarioSelection
 ): UseWebRTCAudioSessionReturn {
   const { t, locale } = useTranslations();
   // Connection/session states
@@ -83,7 +89,24 @@ export default function useWebRTCAudioSession(
    */
   function configureDataChannel(dataChannel: RTCDataChannel) {
     // ロールプレイ用のシステムインストラクション（必ず「お客様役」で振る舞う）
-    const systemInstructions = t("languagePrompt");
+    let systemInstructions = t("languagePrompt");
+
+    // UIで入力・選択したパターン／シチュエーションがあれば、明示的に条件として追記
+    if (scenario?.pattern || scenario?.situation) {
+      systemInstructions += `
+
+## 現在のロープレ指定`;
+      if (scenario.pattern) {
+        systemInstructions += `
+- 顧客パターン: ${scenario.pattern}`;
+      }
+      if (scenario.situation) {
+        systemInstructions += `
+- シチュエーション: ${scenario.situation}`;
+      }
+      systemInstructions += `
+`;
+    }
 
     // Send session update
     const sessionUpdate = {
@@ -103,6 +126,18 @@ export default function useWebRTCAudioSession(
     console.log("Setting locale: " + t("language") + " : " + locale);
 
     // Send language preference message
+    let introText = t("languageUserIntro");
+    if (scenario?.pattern || scenario?.situation) {
+      const parts: string[] = [];
+      if (scenario.pattern) {
+        parts.push(`顧客パターン: ${scenario.pattern}`);
+      }
+      if (scenario.situation) {
+        parts.push(`シチュエーション: ${scenario.situation}`);
+      }
+      introText += ` 今回は「${parts.join(" / ")}」でロープレを行います。`;
+    }
+
     const languageMessage = {
       type: "conversation.item.create",
       item: {
@@ -111,7 +146,7 @@ export default function useWebRTCAudioSession(
         content: [
           {
             type: "input_text",
-            text: t("languageUserIntro"),
+            text: introText,
           },
         ],
       },
